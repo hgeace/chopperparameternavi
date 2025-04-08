@@ -2,6 +2,9 @@ import streamlit as st
 import os
 from PIL import Image
 import base64
+import matplotlib.pyplot as plt
+import numpy as np
+import h5py
 st.set_page_config(layout="wide")
 # ---------------------------
 # 1) 파라미터 후보 리스트 정의
@@ -32,7 +35,6 @@ selected_lr3 = st.sidebar.selectbox("Learning Rate of tt3", learning_rate_list, 
 selected_tr3 = st.sidebar.selectbox("transfer_rate3", transfer_rate_list3)
 selected_cp = st.sidebar.selectbox("Chopper Period", chopper_period_list)
 
-st.title(f"TTv2 vs TTv3 : alpha: {selected_alpha}")
 # ---------------------------   
 # 3) 디렉토리 / 파일명 생성 함수
 # ---------------------------
@@ -57,6 +59,50 @@ def get_algo3_filepath(lr, tr3, alpha, cp, offset, target=0.8):
     filename = f"{lr_str}_{tr3_str}_{alpha_str}_{cp_str}_{offset_str}_{target_str}.png"
     return os.path.join(directory, filename)
 
+
+
+MSE_2_means=[]
+MSE_3_means=[]
+te_2_means=[]
+te_3_means=[]
+with h5py.File(f"./data/{target_value}_{selected_alpha}_{selected_lr2}_{selected_tr2}_2.h5", 'r') as h5f:
+    for grp_key in offset_list:
+        grp = h5f[str(grp_key)]
+        MSE_2_means.append(grp.attrs['MSE_mean'])
+        te_2_means.append(grp.attrs['te_mean'])
+with h5py.File(f"./data/{target_value}_{selected_alpha}_{selected_lr3}_{selected_tr3}_{selected_cp}.h5", 'r') as h5f:
+    for grp_key in offset_list:
+        grp = h5f[str(grp_key)]
+        MSE_3_means.append(grp.attrs['MSE_mean'])
+        te_3_means.append(grp.attrs['te_mean'])
+fig1 = plt.figure(figsize=(5, 5))
+plt.plot(offset_list, MSE_2_means, color='red', marker='o', markersize=4, linewidth=1.5, label='TTv2')
+plt.plot(offset_list, MSE_3_means, color='green', marker='o', markersize=4, linewidth=1.5, label='TTv3')
+plt.xlabel('Offset')
+plt.ylabel('MSE')
+plt.title('MSE')
+plt.xlim(-1, 1)
+plt.xticks(np.arange(-1.0, 1.01, 0.5))
+plt.grid(True)
+plt.legend()
+
+fig2 = plt.figure(figsize=(5, 5))
+plt.plot(offset_list, te_2_means, color='red', marker='o', markersize=4, linewidth=1.5, label='TTv2')
+plt.plot(offset_list, te_3_means, color='green', marker='o', markersize=4, linewidth=1.5, label='TTv3')
+plt.xlabel('Offset')
+plt.ylabel('Target error(%)')
+plt.title('Target error vs Offset')
+plt.xlim(-1, 1)
+plt.xticks(np.arange(-1.0, 1.01, 0.5))
+plt.grid(True)
+plt.legend()
+
+st.title(f"TTv2 vs TTv3 : alpha = {selected_alpha}")
+col1, col2,_ = st.columns(3)
+with col1:
+    st.pyplot(fig1, use_container_width=True)
+with col2:
+    st.pyplot(fig2, use_container_width=True)
 # ---------------------------
 # 4) 이미지 파일을 Base64 인코딩하는 함수
 # ---------------------------
