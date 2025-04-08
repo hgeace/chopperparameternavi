@@ -22,7 +22,7 @@ target_value = 0.8  # target_list = [0.8] 만 있으므로 고정
 # ---------------------------
 st.sidebar.subheader("Device")
 selected_alpha = st.sidebar.selectbox("Alpha", alpha_list)
-st.sidebar.image(f'plot_img\\alpha_{selected_alpha}\\deviceplot.png', use_container_width =True)
+st.sidebar.image(f'plot_img/alpha_{selected_alpha}/deviceplot.png', use_container_width =True)
 
 st.sidebar.markdown("---")  
 st.sidebar.subheader("TTv2")
